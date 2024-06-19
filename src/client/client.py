@@ -4,14 +4,14 @@ import aiohttp
 import logging
 
 from ..config import (
-    HOST, 
-    BASE_PORT
+    Settings
 )
 from random import randint
 from time import time
 
 
 logger = logging.getLogger('client')
+ClientSettings = Settings()
 
 
 async def send_test_requests(num_of_requests: int) -> None:
@@ -30,7 +30,7 @@ async def send_test_requests(num_of_requests: int) -> None:
     async with aiohttp.ClientSession() as session:
         tasks = [
             session.post(
-                f'http://{HOST}:{BASE_PORT}/api/private/sendTask', json=task
+                f'http://{ClientSettings.HOST}:{ClientSettings.BASE_PORT}/api/private/sendTask', json=task
             ) for _ in range(num_of_requests)
         ]
         responses = await asyncio.gather(*tasks)
@@ -41,7 +41,7 @@ async def send_test_requests(num_of_requests: int) -> None:
     end = time()
     
     logger.info('Server info:')  
-    info = requests.get(f'http://{HOST}:{BASE_PORT}/api/public/getInfo').json()
+    info = requests.get(f'http://{ClientSettings.HOST}:{ClientSettings.BASE_PORT}/api/public/getInfo').json()
     logger.info(info)
     tame_taken = round(end-start, 2)
     logger.info(f'Time taken: {tame_taken}')
