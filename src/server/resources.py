@@ -1,11 +1,14 @@
+import logging
+
 from fastapi import FastAPI, HTTPException
-from .utils import Task, CompletedTask
+from ..config import Task, CompletedTask
 from os import getpid
 
 
 server = FastAPI()
 numOfCompletedTasks = 0
-
+logger = logging.getLogger('load_balancer')
+logging.basicConfig(filename='./src/server/server.log', level=logging.INFO)
 
 def generate_nth_fibonacci(n: int) -> int:
     if(n <= 0):
@@ -41,6 +44,7 @@ def getInfo():
         'numOfCompletedTasks': numOfCompletedTasks,
         'pid': getpid(),
     }
+    logger.info(f'Successfully collected and sent server info\n {info}')
     return info
 
 
@@ -53,6 +57,7 @@ def handleTask(task: Task) -> CompletedTask:
         case 'generate_n_factorial':
             result = generate_n_factorial(task.n)
         case _:
+            logger.info(f'Encountered exception: 501 Not Implemented\n {task}')
             raise HTTPException(
                 status_code=501, 
                 detail='No method available to handle the task'
@@ -63,4 +68,5 @@ def handleTask(task: Task) -> CompletedTask:
     )
     global numOfCompletedTasks 
     numOfCompletedTasks += 1
+    logger.info(f'Successfully handled the task\n {task}')
     return completed_task

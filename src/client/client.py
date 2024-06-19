@@ -1,13 +1,24 @@
 import requests
 import asyncio
 import aiohttp
+import logging
 
-from utils import HOST, BASE_PORT
+from ..config import (
+    HOST, 
+    BASE_PORT
+)
 from random import randint
 from time import time
 
 
+logger = logging.getLogger('client')
+
+
 async def send_test_requests(num_of_requests: int) -> None:
+
+    logging.basicConfig(filename='./src/client/client.log', level=logging.INFO)
+    logger.info('Started')
+
     # n = randint(300000,300001)
     n = 300000
     task = {
@@ -23,16 +34,19 @@ async def send_test_requests(num_of_requests: int) -> None:
             ) for _ in range(num_of_requests)
         ]
         responses = await asyncio.gather(*tasks)
-        print('Responses:')
+        logger.info('Responses:')
         for response in responses:
-            print(response)
+            logger.info(response)
 
     end = time()
     
-    print('Server info:')  
+    logger.info('Server info:')  
     info = requests.get(f'http://{HOST}:{BASE_PORT}/api/public/getInfo').json()
-    print(info)
-    print('Time taken:', round(end-start, 2))
+    logger.info(info)
+    tame_taken = round(end-start, 2)
+    logger.info(f'Time taken: {tame_taken}')
+
+    logger.info('Finished\n')
 
 
 if __name__ == '__main__':

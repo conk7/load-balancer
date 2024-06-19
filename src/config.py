@@ -1,11 +1,12 @@
 from pydantic import BaseModel
+from pydantic_settings import BaseSettings
 from typing import Tuple
 
-
-HOST = '127.0.0.1'
-BASE_PORT = 8080
-MAX_PORT = 65535
-PROCESS_CREATION_TIMEOUT_SEC = 2
+class ServerConfig(BaseSettings):
+    HOST = '127.0.0.1'
+    BASE_PORT = 8080
+    MAX_PORT = 65535
+    PROCESS_CREATION_TIMEOUT_SEC = 2
 
 
 class Task(BaseModel):

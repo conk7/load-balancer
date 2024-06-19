@@ -4,15 +4,17 @@ import requests
 
 from multiprocessing import Process
 from time import sleep
-from ..src.server import (
+from ..src.server.resources import (
     generate_n_factorial, 
     generate_nth_fibonacci
 )
-from ..src.utils import (
+from ..src.config import (
     BASE_PORT,
     HOST,
     PROCESS_CREATION_TIMEOUT_SEC
 )
+
+server_app_name = 'loadBalancer.src.server.resources:server'
 
 
 @pytest.mark.parametrize(
@@ -39,7 +41,7 @@ def test_generate_nth_fibonacci(n, result):
 
 
 def prepare_server_process(port: int):
-    return Process(target=uvicorn.run, kwargs={'app': 'loadBalancer.src.server:server', 'port': port})
+    return Process(target=uvicorn.run, kwargs={'app': server_app_name, 'port': port})
 
 def test_server():
     port = BASE_PORT + 100

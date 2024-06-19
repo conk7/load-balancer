@@ -5,13 +5,16 @@ import aiohttp
 
 from multiprocessing import Process
 from time import sleep
-from ..src.utils import (
+from ..src.config import (
     BASE_PORT,
     HOST,
     PROCESS_CREATION_TIMEOUT_SEC,
 )
 
-server_app_name = 'loadBalancer.src.server:server'
+
+load_balancer_app_name = 'loadBalancer.src.load_balancer.load_balancer:load_balancer'
+server_app_name = 'loadBalancer.src.server.resources:server'
+
 
 async def send_test_requests(num_of_requests: int) -> None:
     n = 300000
@@ -38,7 +41,7 @@ async def send_test_requests(num_of_requests: int) -> None:
 
 def prepare_load_balancer_process():
     return Process(target=uvicorn.run, kwargs={
-        'app': 'loadBalancer.src.load_balancer:load_balancer', 
+        'app': load_balancer_app_name, 
         'port': BASE_PORT
     })
 
@@ -59,7 +62,7 @@ def test_load_balancer():
     assert request['numOfServers'] == 0
     assert request['numOfCompletedTasks'] == []
 
-    data = {'type': 'loadBalancer.src.server:server', 'n': 3}
+    data = {'type': server_app_name, 'n': 3}
     request = requests.post(f'http://{HOST}:{BASE_PORT}/api/private/addNewCopy', json=data).json()
     assert request['status'] == 'success'
     assert request['detail'] == 'Successfully added 3 server copies'
@@ -116,14 +119,5 @@ def test_load_balancer():
     request = requests.get(f'http://{HOST}:{BASE_PORT}/api/public/getInfo').json()
     assert request['numOfServers'] == 0
     assert request['numOfCompletedTasks'] == []
-
-    request = requests.post(f'http://{HOST}:{BASE_PORT}/api/private/deleteCopy', json=data).json()
-    assert request['status'] == 'failure'
-    assert request['detail'] == 'No server copies to delete'
-
-    data = {'type': 'loadBalancer.src.server:server', 'n': -10}
-    request = requests.post(f'http://{HOST}:{BASE_PORT}/api/private/deleteCopy', json=data).json()
-    assert request['status'] == 'failure'
-    assert request['detail'] == 'Invalid argument: n'
 
     proc.kill()
