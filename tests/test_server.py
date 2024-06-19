@@ -9,13 +9,11 @@ from ..src.server.resources import (
     generate_nth_fibonacci
 )
 from ..src.config import (
-    BASE_PORT,
-    HOST,
-    PROCESS_CREATION_TIMEOUT_SEC
+    Settings
 )
 
 server_app_name = 'loadBalancer.src.server.resources:server'
-
+ServerSettings = Settings()
 
 @pytest.mark.parametrize(
     ('n', 'result'), [
@@ -44,18 +42,18 @@ def prepare_server_process(port: int):
     return Process(target=uvicorn.run, kwargs={'app': server_app_name, 'port': port})
 
 def test_server():
-    port = BASE_PORT + 100
+    port = ServerSettings.BASE_PORT + 100
     proc = prepare_server_process(port)
     proc.start()
     total_time_slept = 0
-    while not proc.is_alive() and time_slept < PROCESS_CREATION_TIMEOUT_SEC:
+    while not proc.is_alive() and time_slept < ServerSettings.PROCESS_CREATION_TIMEOUT_SEC:
         time_slept = 0.05
         sleep(time_slept)
         total_time_slept += time_slept
     if(total_time_slept > 2):
         raise Exception('Could not start the server process')
 
-    request = requests.get(f'http://{HOST}:{port}/api/getInfoInternal').json()
+    request = requests.get(f'http://{ServerSettings.HOST}:{port}/api/getInfoInternal').json()
 
     assert request['numOfCompletedTasks'] == 0
     assert request['pid'] == proc.pid
@@ -64,7 +62,7 @@ def test_server():
         "type": "generate_nth_fibonacci",
         "n": 10
     }
-    request = requests.post(f'http://{HOST}:{port}/api/sendTask', json=task).json()
+    request = requests.post(f'http://{ServerSettings.HOST}:{port}/api/sendTask', json=task).json()
 
     assert len(request) == 1
     assert request['result'] == 34
@@ -73,7 +71,7 @@ def test_server():
         "type": "generate_n_factorial",
         "n": 5
     }
-    request = requests.post(f'http://{HOST}:{port}/api/sendTask', json=task).json()
+    request = requests.post(f'http://{ServerSettings.HOST}:{port}/api/sendTask', json=task).json()
 
     assert len(request) == 1
     assert request['result'] == 120
