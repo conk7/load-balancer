@@ -12,10 +12,20 @@ class CompletedTask(BaseModel):
 
 
 class ServerInfo(BaseModel):
-    numOfServers: int
-    numOfCompletedTasks: Tuple[int]
+    numOfCompletedTasks: int
+    pid: int
 
 
 class newServerInfo(BaseModel):
     type: str
     n: int
+
+
+class LoadBalancerInfo(BaseModel):
+    numOfServers: int
+    numOfCompletedTasks: Tuple[Tuple[str,int], ...]
+
+
+class ServerCopyResponse(BaseModel):
+    status: str
+    detail: str

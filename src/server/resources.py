@@ -1,9 +1,13 @@
 import logging
 
 from fastapi import FastAPI, HTTPException
-from ..utils import Task, CompletedTask
+from ..utils import (
+    Task, 
+    CompletedTask, 
+    ServerInfo
+)
 from os import getpid
-
+from http import HTTPStatus
 
 server = FastAPI()
 numOfCompletedTasks = 0
@@ -41,14 +45,11 @@ def generate_n_factorial(n: int) -> int:
 
 
 @server.get('/api/getInfoInternal')
-def getInfo():
-    info = {
-        'numOfCompletedTasks': numOfCompletedTasks,
-        'pid': getpid(),
-    }
+def getInfo() -> ServerInfo:
+    pid = getpid()
     logger.info('Successfully collected and sent server info')
-    logger.info(f'Info contained:\n Number of complited tasks{info["numOfCompletedTasks"]}\n server pid:{info["pid"]}')
-    return info
+    logger.info(f'Info contained:\n Number of complited tasks{numOfCompletedTasks}\n server pid:{pid}')
+    return ServerInfo(numOfCompletedTasks = numOfCompletedTasks, pid = pid)
 
 
 @server.post('/api/sendTask') 
@@ -63,13 +64,11 @@ def handleTask(task: Task) -> CompletedTask:
             logger.info('Encountered exception: 501 Not Implemented\n')
             logger.info(f'Info of the task that caused the exception:\n type: {task.type}\n n {task.type}')
             raise HTTPException(
-                status_code=501, 
+                status_code=HTTPStatus.NOT_IMPLEMENTED, 
                 detail='No method available to handle the task'
             )
 
-    completed_task = CompletedTask(
-        result = result
-    )
+    completed_task = CompletedTask(result=result)
     global numOfCompletedTasks 
     numOfCompletedTasks += 1
     logger.info(f'Successfully handled the task')

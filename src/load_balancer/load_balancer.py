@@ -5,11 +5,14 @@ import logging
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
 from ..utils import (
-    newServerInfo
+    newServerInfo,
+    ServerCopyResponse,
+    LoadBalancerInfo
 )
+from http import HTTPStatus
 from ..server.app import createWebServer
 from os import kill
-from typing import List, Dict, Any
+from typing import List
 
 
 load_balancer = FastAPI()
@@ -21,7 +24,7 @@ logger.info('\n\nStarted')
 
 
 @load_balancer.post('/api/private/addNewCopy')
-def addNewServerCopy(data: newServerInfo) -> Dict[str, str]:
+def addNewServerCopy(data: newServerInfo) -> ServerCopyResponse:
     if data.n <= 0:
         result = {
         'status': 'failure',
@@ -49,54 +52,46 @@ def addNewServerCopy(data: newServerInfo) -> Dict[str, str]:
             }
             return result
 
-    result = {
-        'status': 'success',
-        'detail': f'Successfully added {data.n} server copies'
-    }
     logger.info(f'Successfully added {data.n} server copies')
-    return result
+    return ServerCopyResponse(status='success', detail=f'Successfully added {data.n} server copies')
 
 
 @load_balancer.post('/api/private/deleteCopy') 
-def deleteServerCopy(data: newServerInfo) -> Dict[str, str]:
+def deleteServerCopy(data: newServerInfo) -> ServerCopyResponse:
     if data.n <= 0:
-        logger.info(f'Encountered exception: No servers found\n {data}')
-        raise HTTPException(status_code=404, detail="No servers found")
+        logger.info(f'Encountered exception: No servers found\n')
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="No servers found")
     
     for _ in range(data.n):
         if len(server_ips) == 0:
-            logger.info(f'Encountered exception: No servers found\n {data}')
-            raise HTTPException(status_code=404, detail="No servers found")
+            logger.info(f'Encountered exception: No servers found\n')
+            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="No servers found")
     
         ip = server_ips.pop()
+        logger.info(requests.get(f'http://{ip}/api/getInfoInternal'))
         request = requests.get(f'http://{ip}/api/getInfoInternal').json()
         kill(request['pid'], signal.SIGTERM)
 
-    result = {
-        'status': 'success',
-        'detail': f'Successfully deleted {data.n} server copies'
-    }
     logger.info(f'Successfully deleted {data.n} server copies')
-    return result
+    return ServerCopyResponse(status='success', detail=f'Successfully deleted {data.n} server copies')
 
 
 @load_balancer.get('/api/public/getInfo')
-def getInfo() -> Dict[str, Any]:
-    task_info_per_server = []
+def getInfo() -> LoadBalancerInfo:
+    numOfCompletedTasks = []
 
     for i, ip in enumerate(server_ips, 1):
         request = requests.get(f'http://{ip}/api/getInfoInternal').json()
-        task_info_per_server.append((f'Server #{i}', request['numOfCompletedTasks']))
+        numOfCompletedTasks.append((f'Server #{i}', request['numOfCompletedTasks']))
 
-    info = {
-        'numOfServers': len(server_ips),
-        'numOfCompletedTasks': tuple(task_info_per_server)
-    }
+    numOfServers = len(server_ips)
+
     logger.info(f'Successfully collected and sent info of each server')
-    logger.info(f'Info:\n Number of active servers {info["numOfServers"]}')
-    for server in info['numOfCompletedTasks']:
+    logger.info(f'Info:\n Number of active servers {numOfServers}')
+    for server in numOfCompletedTasks:
         logger.info(f'{server[0]} successfully handled {server[1]} tasks')
-    return info
+
+    return LoadBalancerInfo(numOfServers = numOfServers, numOfCompletedTasks = tuple(numOfCompletedTasks))
 
 
 @load_balancer.post('/api/private/sendTask')
@@ -104,7 +99,7 @@ def resendTask() -> RedirectResponse:
     if len(server_ips) == 0:
         logger.info('Encountered exception: 503 No servers available')
         raise HTTPException(
-            status_code=503, 
+            status_code=HTTPStatus.SERVICE_UNAVAILABLE, 
             detail='No servers available'
         )
 

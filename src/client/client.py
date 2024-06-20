@@ -33,10 +33,7 @@ async def send_test_requests(num_of_requests: int) -> None:
                 f'http://{ClientSettings.HOST}:{ClientSettings.BASE_PORT}/api/private/sendTask', json=task
             ) for _ in range(num_of_requests)
         ]
-        responses = await asyncio.gather(*tasks)
-        # logger.info('Responses:')
-        # for response in responses:
-        #     logger.info(response)
+        await asyncio.gather(*tasks)
 
     end = time.monotonic()
     logger.info(f'Successfully sent {num_of_requests} requests')
