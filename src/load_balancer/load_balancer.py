@@ -97,7 +97,7 @@ def getInfo() -> LoadBalancerInfo:
 @load_balancer.post('/api/private/sendTask')
 def resendTask() -> RedirectResponse:
     if len(server_ips) == 0:
-        logger.info('Encountered exception: 503 No servers available')
+        logger.info('Encountered exception: No servers available')
         raise HTTPException(
             status_code=HTTPStatus.SERVICE_UNAVAILABLE, 
             detail='No servers available'

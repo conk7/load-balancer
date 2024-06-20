@@ -61,7 +61,7 @@ def handleTask(task: Task) -> CompletedTask:
         case 'generate_n_factorial':
             result = generate_n_factorial(task.n)
         case _:
-            logger.info('Encountered exception: 501 Not Implemented\n')
+            logger.info('Encountered exception: Not Implemented\n')
             logger.info(f'Info of the task that caused the exception:\n type: {task.type}\n n {task.type}')
             raise HTTPException(
                 status_code=HTTPStatus.NOT_IMPLEMENTED, 
