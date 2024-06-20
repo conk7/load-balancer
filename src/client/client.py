@@ -34,17 +34,24 @@ async def send_test_requests(num_of_requests: int) -> None:
             ) for _ in range(num_of_requests)
         ]
         responses = await asyncio.gather(*tasks)
-        logger.info('Responses:')
-        for response in responses:
-            logger.info(response)
+        # logger.info('Responses:')
+        # for response in responses:
+        #     logger.info(response)
 
     end = time.monotonic()
-    
+    logger.info(f'Successfully sent {num_of_requests} requests')
     logger.info('Server info:')  
+
     info = requests.get(f'http://{ClientSettings.HOST}:{ClientSettings.BASE_PORT}/api/public/getInfo').json()
-    logger.info(info)
+
+    num_of_active_servers = info['numOfServers']
+    num_of_tasks_per_server = info['numOfCompletedTasks']
+    logger.info(f'Number of active servers {num_of_active_servers}')
+    for server in num_of_tasks_per_server:
+        logger.info(f'{server[0]} successfully handled {server[1]} tasks')
+
     tame_taken = round(end-start, 2)
-    logger.info(f'Time taken: {tame_taken}')
+    logger.info(f'Time taken to handle responses: {tame_taken}')
 
     logger.info('Finished\n')
 

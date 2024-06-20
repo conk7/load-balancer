@@ -17,6 +17,7 @@ server_ips: List[str] = []
 next_server_id = 0
 logger = logging.getLogger('load_balancer')
 logging.basicConfig(filename='./src/load_balancer/load_balancer.log', level=logging.INFO)
+logger.info('\n\nStarted')
 
 
 @load_balancer.post('/api/private/addNewCopy')
@@ -33,7 +34,7 @@ def addNewServerCopy(data: newServerInfo) -> Dict[str, str]:
             new_server_ip = createWebServer(data.type, server_ips)
             server_ips.append(new_server_ip)
         except Exception('No unused ports found'):
-            logger.info(f'Encountered exception: No unused ports found\n {data}')
+            logger.info(f'Encountered exception: No unused ports found. The task had the following params: \n {data}')
 
             result = {
                 'status': 'failure',
@@ -41,7 +42,7 @@ def addNewServerCopy(data: newServerInfo) -> Dict[str, str]:
             }
             return result
         except Exception('Could not start the server process'):
-            logger.info(f'Encountered exception: Could not start the server process\n {data}')
+            logger.info(f'Encountered exception: Could not start the server process. The task had the following params:\n {data}')
             result = {
                 'status': 'failure',
                 'detail': 'Could not start the server process'
@@ -52,7 +53,7 @@ def addNewServerCopy(data: newServerInfo) -> Dict[str, str]:
         'status': 'success',
         'detail': f'Successfully added {data.n} server copies'
     }
-    logger.info(f'Successfully handled the request\n {result}')
+    logger.info(f'Successfully added {data.n} server copies')
     return result
 
 
@@ -75,7 +76,7 @@ def deleteServerCopy(data: newServerInfo) -> Dict[str, str]:
         'status': 'success',
         'detail': f'Successfully deleted {data.n} server copies'
     }
-    logger.info(f'Successfully handled request\n {result}')
+    logger.info(f'Successfully deleted {data.n} server copies')
     return result
 
 
@@ -91,7 +92,10 @@ def getInfo() -> Dict[str, Any]:
         'numOfServers': len(server_ips),
         'numOfCompletedTasks': tuple(task_info_per_server)
     }
-    logger.info(f'Successfully collected and sent info of each server\n {info}')
+    logger.info(f'Successfully collected and sent info of each server')
+    logger.info(f'Info:\n Number of active servers {info["numOfServers"]}')
+    for server in info['numOfCompletedTasks']:
+        logger.info(f'{server[0]} successfully handled {server[1]} tasks')
     return info
 
 

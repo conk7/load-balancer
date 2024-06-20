@@ -9,7 +9,7 @@ server = FastAPI()
 numOfCompletedTasks = 0
 logger = logging.getLogger('load_balancer')
 logging.basicConfig(filename='./src/server/server.log', level=logging.INFO)
-
+logger.info('\n\nStarted')
 
 def generate_nth_fibonacci(n: int) -> int:
     if(n <= 0):
@@ -46,7 +46,8 @@ def getInfo():
         'numOfCompletedTasks': numOfCompletedTasks,
         'pid': getpid(),
     }
-    logger.info(f'Successfully collected and sent server info\n {info}')
+    logger.info('Successfully collected and sent server info')
+    logger.info(f'Info contained:\n Number of complited tasks{info["numOfCompletedTasks"]}\n server pid:{info["pid"]}')
     return info
 
 
@@ -59,7 +60,8 @@ def handleTask(task: Task) -> CompletedTask:
         case 'generate_n_factorial':
             result = generate_n_factorial(task.n)
         case _:
-            logger.info(f'Encountered exception: 501 Not Implemented\n {task}')
+            logger.info('Encountered exception: 501 Not Implemented\n')
+            logger.info(f'Info of the task that caused the exception:\n type: {task.type}\n n {task.type}')
             raise HTTPException(
                 status_code=501, 
                 detail='No method available to handle the task'
@@ -70,5 +72,6 @@ def handleTask(task: Task) -> CompletedTask:
     )
     global numOfCompletedTasks 
     numOfCompletedTasks += 1
-    logger.info(f'Successfully handled the task\n {task}')
+    logger.info(f'Successfully handled the task')
+    logger.info(f'Info of the task:\n type: {task.type}\n n {task.type}')
     return completed_task
