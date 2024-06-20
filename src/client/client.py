@@ -7,7 +7,7 @@ from ..config import (
     Settings
 )
 from random import randint
-from time import time
+import time
 
 
 logger = logging.getLogger('client')
@@ -25,7 +25,7 @@ async def send_test_requests(num_of_requests: int) -> None:
         "type": "generate_nth_fibonacci",
         "n": n
     }
-    start = time()
+    start = time.monotonic()
 
     async with aiohttp.ClientSession() as session:
         tasks = [
@@ -38,7 +38,7 @@ async def send_test_requests(num_of_requests: int) -> None:
         for response in responses:
             logger.info(response)
 
-    end = time()
+    end = time.monotonic()
     
     logger.info('Server info:')  
     info = requests.get(f'http://{ClientSettings.HOST}:{ClientSettings.BASE_PORT}/api/public/getInfo').json()
