@@ -4,7 +4,7 @@ import logging
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
-from ..config import (
+from ..utils import (
     newServerInfo
 )
 from ..server.app import createWebServer

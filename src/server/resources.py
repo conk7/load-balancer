@@ -1,7 +1,7 @@
 import logging
 
 from fastapi import FastAPI, HTTPException
-from ..config import Task, CompletedTask
+from ..utils import Task, CompletedTask
 from os import getpid
 
 
