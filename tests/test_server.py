@@ -12,8 +12,10 @@ from ..src.config import (
     Settings
 )
 
+
 server_app_name = 'loadBalancer.src.server.resources:server'
 ServerSettings = Settings()
+
 
 @pytest.mark.parametrize(
     ('n', 'result'), [

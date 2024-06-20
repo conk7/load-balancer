@@ -10,6 +10,7 @@ numOfCompletedTasks = 0
 logger = logging.getLogger('load_balancer')
 logging.basicConfig(filename='./src/server/server.log', level=logging.INFO)
 
+
 def generate_nth_fibonacci(n: int) -> int:
     if(n <= 0):
         return -1
@@ -24,6 +25,7 @@ def generate_nth_fibonacci(n: int) -> int:
        num2 = num_next
        count += 1
     return num1
+
 
 def generate_n_factorial(n: int) -> int:
     if(n < 0):

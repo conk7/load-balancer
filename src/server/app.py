@@ -8,6 +8,7 @@ from ..config import (
 )
 from typing import List
 
+
 ServerSettings = Settings()
 
 

@@ -7,7 +7,7 @@
 1. FastAPI
 2. requests
 3. Uvicorn
-4. Pydantic
+4. Pydantic, Pydantic-Settings
 
 Для тестового клиента также понадобятся
 1. asyncio

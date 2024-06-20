@@ -9,8 +9,8 @@ from ..src.config import (
     Settings
 )
 
-ServerSettings = Settings()
 
+ServerSettings = Settings()
 load_balancer_app_name = 'loadBalancer.src.load_balancer.load_balancer:load_balancer'
 server_app_name = 'loadBalancer.src.server.resources:server'
 

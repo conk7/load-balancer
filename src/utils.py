@@ -15,6 +15,7 @@ class ServerInfo(BaseModel):
     numOfServers: int
     numOfCompletedTasks: Tuple[int]
 
+
 class newServerInfo(BaseModel):
     type: str
     n: int

@@ -18,6 +18,7 @@ next_server_id = 0
 logger = logging.getLogger('load_balancer')
 logging.basicConfig(filename='./src/load_balancer/load_balancer.log', level=logging.INFO)
 
+
 @load_balancer.post('/api/private/addNewCopy')
 def addNewServerCopy(data: newServerInfo) -> Dict[str, str]:
     if data.n <= 0:
@@ -76,6 +77,7 @@ def deleteServerCopy(data: newServerInfo) -> Dict[str, str]:
     }
     logger.info(f'Successfully handled request\n {result}')
     return result
+
 
 @load_balancer.get('/api/public/getInfo')
 def getInfo() -> Dict[str, Any]:
