@@ -1,0 +1,27 @@
+POST http://127.0.0.1:8080/api/private/sendTask
+Content-Type: application/json
+
+{
+    "type": "task1",
+    "n": 70321
+}
+
+###
+
+POST http://127.0.0.1:8080/api/private/addNewCopy
+Content-Type: application/json
+
+{
+    "type": "src.server.resources:server",
+    "n": 2
+}
+###
+
+POST http://127.0.0.1:8080/api/private/deleteCopy
+Content-Type: application/json
+
+{
+    "type": "src.server.resources:server",
+    "n": 2
+}
+###

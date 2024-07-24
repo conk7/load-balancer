@@ -2,12 +2,10 @@ import requests
 import asyncio
 import aiohttp
 import logging
-
-from ..config import (
-    Settings
-)
-from random import randint
 import time
+from pydantic_core import ValidationError
+from ..config import Settings
+from ..utils import ServerCopyResponse
 
 
 logger = logging.getLogger('client')
@@ -19,7 +17,19 @@ async def send_test_requests(num_of_requests: int) -> None:
     logging.basicConfig(filename='./src/client/client.log', level=logging.INFO)
     logger.info('Started')
 
-    # n = randint(300000,300001)
+    serverCopiesInfo = {"type": "src.server.resources:server","n": 2}
+    info = requests.post(f'http://{ClientSettings.HOST}:{ClientSettings.BASE_PORT}/api/private/addNewCopy', json=serverCopiesInfo).json()
+
+    try:
+        info = ServerCopyResponse.model_validate(info)
+    except ValidationError:
+        logger.info('Received invalid data')
+        return
+    
+    if info.status != 'success':
+        logger.info('Load balancer could not create server copies.')
+        return
+
     n = 300000
     task = {
         "type": "generate_nth_fibonacci",
@@ -47,10 +57,21 @@ async def send_test_requests(num_of_requests: int) -> None:
     for server in num_of_tasks_per_server:
         logger.info(f'{server[0]} successfully handled {server[1]} tasks')
 
-    tame_taken = round(end-start, 2)
-    logger.info(f'Time taken to handle responses: {tame_taken}')
+    time_taken = round(end-start, 2)
 
-    logger.info('Finished\n')
+    info = requests.post(f'http://{ClientSettings.HOST}:{ClientSettings.BASE_PORT}/api/private/deleteCopy', json=serverCopiesInfo).json()
+    try:
+        info = ServerCopyResponse.model_validate(info)
+    except ValidationError:
+        logger.info('Received invalid data')
+        return
+    
+    if info.status != 'success':
+        logger.info('Load balancer could not delete server copies.')
+        return
+
+    logger.info(f'Time taken to handle responses: {time_taken}')
+    logger.info('Successfully finished\n')
 
 
 if __name__ == '__main__':

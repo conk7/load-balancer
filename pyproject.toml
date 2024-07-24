@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "load-balancer"
+version = "0.1.0"
+description = "simple load balancer"
+authors = ["Vladislav Tyurin <conk7@users.noreply.github.com>"]
+license = ""
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+requests = "^2.32.3"
+aiohttp = "^3.9.5"
+pydantic-settings = "^2.3.4"
+uvicorn = "^0.30.3"
+fastapi = "^0.111.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

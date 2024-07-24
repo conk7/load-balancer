@@ -1,6 +1,5 @@
 import uvicorn
 
-from fastapi import FastAPI
 from multiprocessing import Process
 from time import sleep
 from ..config import (
@@ -33,7 +32,7 @@ def createWebServer(server_app_name: str, server_ips: List[str]) -> str:
     proc.start()
     
     total_time_slept = 0
-    while not proc.is_alive() and time_slept < ServerSettings.PROCESS_CREATION_TIMEOUT_SEC:
+    while not proc.is_alive() and total_time_slept < ServerSettings.PROCESS_CREATION_TIMEOUT_SEC:
         time_slept = 0.05
         sleep(time_slept)
         total_time_slept += time_slept

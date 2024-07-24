@@ -45,7 +45,7 @@ def generate_n_factorial(n: int) -> int:
 
 
 @server.get('/api/getInfoInternal')
-def getInfo() -> ServerInfo:
+async def getInfo() -> ServerInfo:
     pid = getpid()
     logger.info('Successfully collected and sent server info')
     logger.info(f'Info contained:\n Number of complited tasks{numOfCompletedTasks}\n server pid:{pid}')
@@ -53,7 +53,7 @@ def getInfo() -> ServerInfo:
 
 
 @server.post('/api/sendTask') 
-def handleTask(task: Task) -> CompletedTask:
+async def handleTask(task: Task) -> CompletedTask:
     result = 0
     match task.type:
         case 'generate_nth_fibonacci':
@@ -71,6 +71,6 @@ def handleTask(task: Task) -> CompletedTask:
     completed_task = CompletedTask(result=result)
     global numOfCompletedTasks 
     numOfCompletedTasks += 1
-    logger.info(f'Successfully handled the task')
+    logger.info('Successfully handled the task')
     logger.info(f'Info of the task:\n type: {task.type}\n n {task.type}')
     return completed_task

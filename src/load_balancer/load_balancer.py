@@ -7,12 +7,14 @@ from fastapi.responses import RedirectResponse
 from ..utils import (
     newServerInfo,
     ServerCopyResponse,
-    LoadBalancerInfo
+    LoadBalancerInfo,
+    ServerInfo
 )
 from http import HTTPStatus
 from ..server.app import createWebServer
 from os import kill
 from typing import List
+from pydantic_core import ValidationError
 
 
 load_balancer = FastAPI()
@@ -24,7 +26,7 @@ logger.info('\n\nStarted')
 
 
 @load_balancer.post('/api/private/addNewCopy')
-def addNewServerCopy(data: newServerInfo) -> ServerCopyResponse:
+async def addNewServerCopy(data: newServerInfo) -> ServerCopyResponse:
     if data.n <= 0:
         result = {
         'status': 'failure',
@@ -57,45 +59,59 @@ def addNewServerCopy(data: newServerInfo) -> ServerCopyResponse:
 
 
 @load_balancer.post('/api/private/deleteCopy') 
-def deleteServerCopy(data: newServerInfo) -> ServerCopyResponse:
+async def deleteServerCopy(data: newServerInfo) -> ServerCopyResponse:
     if data.n <= 0:
-        logger.info(f'Encountered exception: No servers found\n')
+        logger.info('Encountered exception: No servers found\n')
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="No servers found")
     
     for _ in range(data.n):
         if len(server_ips) == 0:
-            logger.info(f'Encountered exception: No servers found\n')
+            logger.info('Encountered exception: No servers found\n')
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="No servers found")
     
         ip = server_ips.pop()
         logger.info(requests.get(f'http://{ip}/api/getInfoInternal'))
         request = requests.get(f'http://{ip}/api/getInfoInternal').json()
-        kill(request['pid'], signal.SIGTERM)
+
+        try:
+            request = ServerInfo.model_validate(request)
+        except ValidationError:
+            logger.info('Received invalid data')
+            return ServerCopyResponse(status='failure', detail='Could delete server copies')
+        
+        kill(request.pid, signal.SIGTERM)
 
     logger.info(f'Successfully deleted {data.n} server copies')
     return ServerCopyResponse(status='success', detail=f'Successfully deleted {data.n} server copies')
 
 
 @load_balancer.get('/api/public/getInfo')
-def getInfo() -> LoadBalancerInfo:
+async def getInfo() -> LoadBalancerInfo:
     numOfCompletedTasks = []
 
     for i, ip in enumerate(server_ips, 1):
         request = requests.get(f'http://{ip}/api/getInfoInternal').json()
-        numOfCompletedTasks.append((f'Server #{i}', request['numOfCompletedTasks']))
+
+        try:
+            request = ServerInfo.model_validate(request)
+        except ValidationError:
+            logger.info('Received invalid data')
+            return LoadBalancerInfo(numOfServers = -1, numOfCompletedTasks = [])
+
+        numOfCompletedTasks.append((f'Server #{i}', request.numOfCompletedTasks))
 
     numOfServers = len(server_ips)
 
-    logger.info(f'Successfully collected and sent info of each server')
+    logger.info('Successfully collected and sent info of each server')
     logger.info(f'Info:\n Number of active servers {numOfServers}')
     for server in numOfCompletedTasks:
         logger.info(f'{server[0]} successfully handled {server[1]} tasks')
 
-    return LoadBalancerInfo(numOfServers = numOfServers, numOfCompletedTasks = tuple(numOfCompletedTasks))
+    return LoadBalancerInfo(numOfServers = numOfServers, numOfCompletedTasks = numOfCompletedTasks)
 
 
 @load_balancer.post('/api/private/sendTask')
-def resendTask() -> RedirectResponse:
+async def resendTask() -> RedirectResponse:
     if len(server_ips) == 0:
         logger.info('Encountered exception: No servers available')
         raise HTTPException(
@@ -108,4 +124,4 @@ def resendTask() -> RedirectResponse:
     ip = server_ips[next_server_id]
     next_server_id = (next_server_id + 1) % (len(server_ips))
     logger.info(f'Successfully redirected request to {ip}')
-    return RedirectResponse(f'http://{ip}/api/sendTask', status_code=307)
+    return RedirectResponse(f'http://{ip}/api/sendTask', status_code=HTTPStatus.TEMPORARY_REDIRECT)
